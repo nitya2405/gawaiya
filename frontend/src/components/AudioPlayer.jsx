@@ -3,21 +3,20 @@ import WaveSurfer from 'wavesurfer.js'
 import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js'
 
 export function AudioPlayer({ audioUrl, jobId }) {
-  const waveRef      = useRef(null)
-  const spectroRef   = useRef(null)
-  const wsRef        = useRef(null)
-  const [playing, setPlaying]     = useState(false)
-  const [duration, setDuration]   = useState(0)
-  const [current, setCurrent]     = useState(0)
-  const [showSpec, setShowSpec]   = useState(false)
-  const [specReady, setSpecReady] = useState(false)
+  const waveRef    = useRef(null)
+  const spectroRef = useRef(null)
+  const wsRef      = useRef(null)
+
+  const [playing, setPlaying]   = useState(false)
+  const [duration, setDuration] = useState(0)
+  const [current, setCurrent]   = useState(0)
+  const [showSpec, setShowSpec] = useState(false)
 
   useEffect(() => {
     if (!audioUrl || !waveRef.current) return
     if (wsRef.current) wsRef.current.destroy()
     setPlaying(false)
     setCurrent(0)
-    setSpecReady(false)
 
     const plugins = showSpec && spectroRef.current
       ? [SpectrogramPlugin.create({ container: spectroRef.current, labels: true, height: 80 })]
@@ -26,19 +25,21 @@ export function AudioPlayer({ audioUrl, jobId }) {
     const ws = WaveSurfer.create({
       container:     waveRef.current,
       waveColor:     '#52525b',
-      progressColor: '#8b5cf6',
+      progressColor: '#f59e0b',   // amber-400
+      cursorColor:   '#f59e0b',
       height:        56,
       barWidth:      2,
       barGap:        1,
       barRadius:     2,
-      cursorColor:   '#8b5cf6',
+      interact:      true,        // click-to-seek
       url:           audioUrl,
       plugins,
     })
 
-    ws.on('ready',        () => { setDuration(ws.getDuration()); setSpecReady(true) })
+    ws.on('ready',        () => setDuration(ws.getDuration()))
     ws.on('audioprocess', () => setCurrent(ws.getCurrentTime()))
-    ws.on('finish',       () => setPlaying(false))
+    ws.on('seek',         () => setCurrent(ws.getCurrentTime()))
+    ws.on('finish',       () => { setPlaying(false); setCurrent(0) })
     wsRef.current = ws
 
     return () => ws.destroy()
@@ -50,37 +51,42 @@ export function AudioPlayer({ audioUrl, jobId }) {
     setPlaying(p => !p)
   }
 
-  const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+  const fmt = s => {
+    const m = Math.floor(s / 60)
+    const sec = String(Math.floor(s % 60)).padStart(2, '0')
+    return `${m}:${sec}`
+  }
 
   if (!audioUrl) return null
 
   return (
     <div className="flex flex-col gap-2 bg-zinc-800/60 rounded-xl p-4 border border-zinc-700">
-      {/* Waveform */}
-      <div ref={waveRef} className="w-full" />
+      {/* Waveform — click anywhere to seek */}
+      <div ref={waveRef} className="w-full cursor-pointer" />
 
-      {/* Spectrogram (conditionally rendered) */}
-      {showSpec && (
-        <div ref={spectroRef} className="w-full mt-1" />
-      )}
+      {/* Spectrogram */}
+      {showSpec && <div ref={spectroRef} className="w-full mt-1" />}
 
-      {/* Controls row */}
+      {/* Controls */}
       <div className="flex items-center gap-3 mt-1">
         <button
           onClick={togglePlay}
-          className="w-9 h-9 rounded-full bg-violet-600 hover:bg-violet-500 flex items-center justify-center text-white transition-colors flex-shrink-0"
+          className="w-9 h-9 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center text-zinc-950 font-bold transition-colors flex-shrink-0"
         >
           {playing ? '⏸' : '▶'}
         </button>
+
         <span className="text-xs text-zinc-400 font-mono tabular-nums">
           {fmt(current)} / {fmt(duration)}
         </span>
 
-        {/* Spectrogram toggle */}
         <button
           onClick={() => setShowSpec(v => !v)}
-          className={`text-xs border rounded-lg px-2.5 py-1 transition-colors ${showSpec ? 'border-violet-500 text-violet-300' : 'border-zinc-700 text-zinc-500 hover:text-zinc-300'}`}
-          title="Toggle spectrogram"
+          className={`text-xs border rounded-lg px-2.5 py-1 transition-colors ${
+            showSpec
+              ? 'border-amber-500 text-amber-300'
+              : 'border-zinc-700 text-zinc-500 hover:text-zinc-300'
+          }`}
         >
           Spectrogram
         </button>
@@ -88,7 +94,7 @@ export function AudioPlayer({ audioUrl, jobId }) {
         <a
           href={audioUrl}
           download={`sangeet-${jobId}.mp3`}
-          className="ml-auto text-xs text-zinc-400 hover:text-violet-400 border border-zinc-700 hover:border-violet-500 rounded-lg px-3 py-1.5 transition-colors"
+          className="ml-auto text-xs text-zinc-400 hover:text-amber-400 border border-zinc-700 hover:border-amber-500 rounded-lg px-3 py-1.5 transition-colors"
         >
           Download
         </a>

@@ -66,10 +66,12 @@ class GenerateResponse(BaseModel):
 
 class JobStatus(BaseModel):
     job_id: str
-    status: Literal["queued", "running", "done", "failed"]
+    status: Literal["queued", "running", "done", "failed", "cancelled"]
     progress: float = Field(0.0, ge=0.0, le=1.0, description="0.0–1.0")
     queue_position: Optional[int] = Field(None, description="Position in queue (1-based), None if running/done")
     error: Optional[str] = None
+    n_clips: int = Field(0, description="Total clips to generate")
+    clip_num: int = Field(0, description="Clip currently being generated (1-based)")
 
 
 class RagaMeta(BaseModel):

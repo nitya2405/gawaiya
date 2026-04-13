@@ -2,8 +2,8 @@ import { useState } from 'react'
 import axios from 'axios'
 
 export function FeedbackButtons({ jobId }) {
-  const [voted, setVoted]     = useState(null)
-  const [copied, setCopied]   = useState(false)
+  const [voted, setVoted]   = useState(null)  // 1 | -1 | null
+  const [copied, setCopied] = useState(false)
 
   const submit = async (value) => {
     if (voted !== null || !jobId) return
@@ -25,25 +25,47 @@ export function FeedbackButtons({ jobId }) {
   return (
     <div className="flex items-center gap-3 flex-wrap">
       <span className="text-xs text-zinc-500">Rate:</span>
+
+      {/* Thumbs up */}
       <button
         onClick={() => submit(1)}
         disabled={voted !== null}
-        className={`text-lg transition-all ${voted === 1 ? 'opacity-100 scale-110' : 'opacity-50 hover:opacity-100'} disabled:cursor-default`}
         title="Good"
-      >👍</button>
+        className={`
+          flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border transition-all
+          ${voted === 1
+            ? 'bg-emerald-900/40 border-emerald-500 text-emerald-400'
+            : voted === null
+            ? 'border-zinc-700 text-zinc-400 hover:border-emerald-600 hover:text-emerald-400'
+            : 'border-zinc-800 text-zinc-700 cursor-default'}
+        `}
+      >
+        👍 {voted === 1 && <span>Nice!</span>}
+      </button>
+
+      {/* Thumbs down */}
       <button
         onClick={() => submit(-1)}
         disabled={voted !== null}
-        className={`text-lg transition-all ${voted === -1 ? 'opacity-100 scale-110' : 'opacity-50 hover:opacity-100'} disabled:cursor-default`}
         title="Not good"
-      >👎</button>
-      {voted !== null && <span className="text-xs text-zinc-500">Thanks!</span>}
+        className={`
+          flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border transition-all
+          ${voted === -1
+            ? 'bg-red-900/40 border-red-500 text-red-400'
+            : voted === null
+            ? 'border-zinc-700 text-zinc-400 hover:border-red-600 hover:text-red-400'
+            : 'border-zinc-800 text-zinc-700 cursor-default'}
+        `}
+      >
+        👎 {voted === -1 && <span>Noted</span>}
+      </button>
 
+      {/* Share */}
       <button
         onClick={copyLink}
         className="ml-auto text-xs text-zinc-400 hover:text-violet-400 border border-zinc-700 hover:border-violet-500 rounded-lg px-3 py-1.5 transition-colors"
       >
-        {copied ? 'Copied!' : 'Copy link'}
+        {copied ? '✓ Copied' : 'Copy link'}
       </button>
     </div>
   )

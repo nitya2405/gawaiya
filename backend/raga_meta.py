@@ -75,16 +75,21 @@ RAGA_META: dict[str, dict] = {
 }
 
 TALA_META: dict[str, dict] = {
-    "Ādi Tāl":       {"beats": 8,  "character": "Medium"},
-    "Dādrā":         {"beats": 6,  "character": "Medium"},
-    "Dhamar":        {"beats": 14, "character": "Slow"},
-    "Ēktāl":         {"beats": 12, "character": "Slow"},
-    "Jhaptāl":       {"beats": 10, "character": "Medium"},
-    "Jhūmrā":        {"beats": 14, "character": "Slow"},
-    "Keharwā":       {"beats": 8,  "character": "Fast"},
-    "Rūpak":         {"beats": 7,  "character": "Medium"},
-    "Tīntāl":        {"beats": 16, "character": "Medium"},
-    "Tilwāḍā":       {"beats": 16, "character": "Slow"},
+    # beats: total beat count
+    # sam: 1-based beat number of sam (always 1 except Rūpak)
+    # khali: list of 1-based beat numbers that are khali (empty/open hand)
+    # vibhag: list of vibhag sizes (must sum to beats)
+    # character: tempo feel
+    "Ādi Tāl":  {"beats": 8,  "sam": 1, "khali": [5],     "vibhag": [2,2,2,2], "character": "Medium"},
+    "Dādrā":    {"beats": 6,  "sam": 1, "khali": [4],     "vibhag": [3,3],     "character": "Medium"},
+    "Dhamar":   {"beats": 14, "sam": 1, "khali": [9],     "vibhag": [5,2,3,4], "character": "Slow"},
+    "Ēktāl":    {"beats": 12, "sam": 1, "khali": [7,9],   "vibhag": [2,2,2,2,2,2], "character": "Slow"},
+    "Jhaptāl":  {"beats": 10, "sam": 1, "khali": [6],     "vibhag": [2,3,2,3], "character": "Medium"},
+    "Jhūmrā":   {"beats": 14, "sam": 1, "khali": [9],     "vibhag": [3,4,3,4], "character": "Slow"},
+    "Keharwā":  {"beats": 8,  "sam": 1, "khali": [5],     "vibhag": [4,4],     "character": "Fast"},
+    "Rūpak":    {"beats": 7,  "sam": 4, "khali": [1],     "vibhag": [3,2,2],   "character": "Medium"},
+    "Tīntāl":   {"beats": 16, "sam": 1, "khali": [9],     "vibhag": [4,4,4,4], "character": "Medium"},
+    "Tilwāḍā":  {"beats": 16, "sam": 1, "khali": [9],     "vibhag": [4,4,4,4], "character": "Slow"},
 }
 
 

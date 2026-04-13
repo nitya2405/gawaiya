@@ -10,19 +10,13 @@ import { AudioPlayer } from './components/AudioPlayer'
 import { FeedbackButtons } from './components/FeedbackButtons'
 import { GenerationHistory, saveToHistory, loadHistory } from './components/GenerationHistory'
 
-// ---------------------------------------------------------------------------
-// Raga of the day — deterministic from calendar date
-// ---------------------------------------------------------------------------
 function getRagaOfDay(ragas) {
   if (!ragas.length) return null
-  const today = new Date()
-  const seed  = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+  const d = new Date()
+  const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
   return ragas[seed % ragas.length]
 }
 
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
 export default function App() {
   const { ragas, talas, loading } = useVocab()
 
@@ -34,7 +28,12 @@ export default function App() {
   const [nCb, setNCb]           = useState(4)
   const [history, setHistory]   = useState(loadHistory)
 
-  const { generate, reset, jobId, status, progress, queuePos, error, audioUrl, isGenerating } = useGeneration()
+  const {
+    generate, cancel, reset,
+    jobId, status, progress, queuePos,
+    nClips, clipNum,
+    error, audioUrl, isGenerating,
+  } = useGeneration()
 
   // Set defaults once vocab loads
   useEffect(() => {
@@ -42,7 +41,7 @@ export default function App() {
     if (talas.length && !talas.find(t => t.name === tala)) setTala(talas[0].name)
   }, [ragas, talas])
 
-  // Handle ?share=job_id in URL — load shared generation
+  // Handle ?share=job_id
   useEffect(() => {
     const params  = new URLSearchParams(window.location.search)
     const shareId = params.get('share')
@@ -54,7 +53,7 @@ export default function App() {
     }).catch(() => {})
   }, [])
 
-  // Save to history when done
+  // Save to history on done
   useEffect(() => {
     if (status === 'done') {
       saveToHistory({ raga, tala, duration_sec: duration })
@@ -65,6 +64,8 @@ export default function App() {
   const handleGenerate = () =>
     generate({ raga, tala, duration_sec: duration, cfg_scale: cfgScale, n_codebooks: nCb })
 
+  const handleCancel = () => cancel()
+
   const handleReload = (entry) => {
     reset()
     setRaga(entry.raga)
@@ -73,6 +74,7 @@ export default function App() {
   }
 
   const ragaOfDay = getRagaOfDay(ragas)
+  const isActive  = isGenerating
 
   if (loading) {
     return (
@@ -101,7 +103,7 @@ export default function App() {
             <div>
               <p className="text-xs uppercase tracking-widest text-violet-400 font-medium mb-0.5">Raga of the day</p>
               <p className="text-sm font-medium text-zinc-100">{ragaOfDay.name}</p>
-              <p className="text-xs text-zinc-500">{ragaOfDay.thaat} thaat · {ragaOfDay.time} · {ragaOfDay.mood}</p>
+              <p className="text-xs text-zinc-500">{ragaOfDay.thaat} · {ragaOfDay.time} · {ragaOfDay.mood}</p>
             </div>
             <span className="text-xs text-violet-400 group-hover:text-violet-300 transition-colors">Select →</span>
           </button>
@@ -150,18 +152,26 @@ export default function App() {
           {/* Generate button */}
           <button
             onClick={handleGenerate}
-            disabled={isGenerating}
+            disabled={isActive}
             className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-700 disabled:text-zinc-400 text-white font-medium transition-colors"
           >
-            {isGenerating ? 'Generating…' : 'Generate Music'}
+            {isActive ? 'Generating…' : 'Generate Music'}
           </button>
         </div>
 
-        {/* Progress */}
-        <ProgressBar status={status} progress={progress} queuePos={queuePos} />
+        {/* Progress + Cancel */}
+        <ProgressBar
+          status={status}
+          progress={progress}
+          queuePos={queuePos}
+          nClips={nClips}
+          clipNum={clipNum}
+          jobId={jobId}
+          onCancel={handleCancel}
+        />
 
         {/* Error */}
-        {error && (
+        {error && status !== 'cancelled' && (
           <p className="text-sm text-red-400 text-center">{error}</p>
         )}
 
@@ -169,15 +179,13 @@ export default function App() {
         {audioUrl && (
           <div className="flex flex-col gap-3">
             <AudioPlayer audioUrl={audioUrl} jobId={jobId} />
-            <div className="flex flex-col gap-2">
-              <FeedbackButtons jobId={jobId} />
-              <button
-                onClick={handleGenerate}
-                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-right"
-              >
-                Regenerate
-              </button>
-            </div>
+            <FeedbackButtons jobId={jobId} />
+            <button
+              onClick={handleGenerate}
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors self-end"
+            >
+              Regenerate ↺
+            </button>
           </div>
         )}
 

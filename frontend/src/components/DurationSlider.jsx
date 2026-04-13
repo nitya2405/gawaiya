@@ -24,11 +24,11 @@ export function DurationSlider({ value, onChange }) {
       </div>
       {!isStitched ? (
         <p className="text-xs text-emerald-400 mt-0.5">
-          Single coherent clip · best quality
+          Single take · no stitching · best quality
         </p>
       ) : (
         <p className="text-xs text-amber-400 mt-0.5">
-          Beyond 12s, clips are stitched with a crossfade. Transitions may be audible.
+          Beyond 12s clips are stitched with a crossfade — transitions may be audible
         </p>
       )}
     </div>

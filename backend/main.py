@@ -187,7 +187,14 @@ def _run_generation(job_id: str) -> None:
         clips: list[np.ndarray] = []
         sr_out = None
 
+        _update_job(job_id, n_clips=n_clips, clip_num=0)
+
         for i in range(n_clips):
+            # Check for cancellation between clips
+            if _get_job(job_id).get("status") == "cancelled":
+                return
+
+            _update_job(job_id, clip_num=i + 1)
             n_frames  = max(1, int(CLIP_SEC * frame_rate))
             cb_scales = CB_TEMPERATURE_SCALES[:n_cb_full]
 
@@ -330,6 +337,8 @@ def generate(req: GenerateRequest, request: Request) -> GenerateResponse:
             "duration_sec": req.duration_sec,
             "cfg_scale":    req.cfg_scale,
             "n_codebooks":  req.n_codebooks,
+            "n_clips":      0,
+            "clip_num":     0,
         }
         _queue.append(job_id)
 
@@ -354,6 +363,8 @@ def job_status(job_id: str) -> JobStatus:
         progress=float(job["progress"]),
         queue_position=queue_pos,
         error=job.get("error"),
+        n_clips=int(job.get("n_clips", 0)),
+        clip_num=int(job.get("clip_num", 0)),
     )
 
 
@@ -383,6 +394,26 @@ def get_audio(job_id: str) -> StreamingResponse:
         media_type="audio/mpeg",
         headers={"Content-Disposition": f'attachment; filename="{job_id}.mp3"'},
     )
+
+
+# ---------------------------------------------------------------------------
+# Cancel
+# ---------------------------------------------------------------------------
+
+
+@app.post("/api/cancel/{job_id}", status_code=204)
+def cancel_job(job_id: str) -> Response:
+    job = _get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job["status"] in ("queued", "running"):
+        _update_job(job_id, status="cancelled")
+        with _lock:
+            try:
+                _queue.remove(job_id)
+            except ValueError:
+                pass
+    return Response(status_code=204)
 
 
 # ---------------------------------------------------------------------------
@@ -453,6 +484,8 @@ async def ws_progress(websocket: WebSocket, job_id: str) -> None:
                 "progress":       float(job["progress"]),
                 "queue_position": queue_pos,
                 "error":          job.get("error"),
+                "n_clips":        int(job.get("n_clips", 0)),
+                "clip_num":       int(job.get("clip_num", 0)),
             })
 
             if job["status"] in ("done", "failed"):
