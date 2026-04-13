@@ -1,0 +1,17 @@
+checkpoint: runs/hindustani_small/checkpoints/latest.pt
+
+conditioning:
+  raga: Yaman
+  tala: Teentaal
+  artist: unknown
+  text: ""
+
+generation:
+  device: cuda
+  duration_sec: 12.0
+  temperature: 0.65
+  top_k: 0
+  top_p: 0.95
+
+output:
+  wav_path: outputs/yaman_stable.wav

@@ -1,0 +1,35 @@
+data:
+  tokens_manifest: data/tokens/hindustani_encodec_24khz_bw6/manifest.jsonl
+  vocabs_dir: runs/hindustani_small/vocabs
+
+model:
+  d_model: 512
+  n_layers: 12
+  n_heads: 8
+  dropout: 0.1
+  ff_mult: 4
+  cross_attention: true
+  max_seq_len: 4096
+  # --- CFG: drop all conditioning with 10% probability per sample ---
+  cfg_dropout: 0.1
+
+training:
+  output_dir: runs/hindustani_cfg
+  seed: 42
+  device: cuda
+  batch_size: 2
+  num_workers: 0
+  grad_accum_steps: 8          # effective batch = 16, same as base run
+  lr: 5.0e-5                   # ~6x lower than base lr for fine-tuning
+  weight_decay: 0.01
+  warmup_steps: 200            # short warmup — we're resuming, not starting fresh
+  grad_clip: 1.0
+  max_steps: 155000            # 120k base + 35k CFG steps with equal weights
+  log_every: 50
+  ckpt_every: 250
+  amp: true
+  tensorboard: true
+
+  # Equal loss weights across all codebooks.
+  # Previously downweighted cb4-cb7 which caused them to produce static — removed.
+  cb_loss_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]

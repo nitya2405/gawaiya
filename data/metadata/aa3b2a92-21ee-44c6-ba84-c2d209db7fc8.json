@@ -1,0 +1,15 @@
+{
+  "mbid": "aa3b2a92-21ee-44c6-ba84-c2d209db7fc8",
+  "raga": "Triveni gauri",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 1508675,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Triveni"
+}

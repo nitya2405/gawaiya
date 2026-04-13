@@ -1,0 +1,13 @@
+input_manifest: data/smoke/segments_manifest.jsonl
+
+tokenizer:
+  name: encodec
+  model: 24khz
+  bandwidth: 6.0
+  device: cpu
+  use_normalize: false
+
+output:
+  tokens_dir: data/smoke/tokens/encodec_24khz_bw6
+  manifest_path: data/smoke/tokens/encodec_24khz_bw6/manifest.jsonl
+

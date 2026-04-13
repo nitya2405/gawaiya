@@ -1,0 +1,15 @@
+{
+  "mbid": "0bf5e46b-2434-496e-a1b2-cbf3273fdbdf",
+  "raga": "Gauri",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 991059,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Lalita Gauri"
+}

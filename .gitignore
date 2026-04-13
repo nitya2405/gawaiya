@@ -1,0 +1,38 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments
+env/
+.venv/
+
+# Data & artifacts
+data/processed/
+data/tokens/
+data/smoke/
+data/saraga_mp3/
+data/saraga_wav/
+dataset/
+dataset_smoke/
+runs/
+outputs/
+
+# Checkpoints / audio
+*.pt
+*.ckpt
+*.wav
+*.mp3
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Raw dataset archives
+saraga1.5_hindustani/
+saraga/
+__MACOSX/
+
+# Claude internal
+.claude/

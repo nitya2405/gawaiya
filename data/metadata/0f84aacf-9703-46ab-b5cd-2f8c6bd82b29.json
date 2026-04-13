@@ -1,0 +1,15 @@
+{
+  "mbid": "0f84aacf-9703-46ab-b5cd-2f8c6bd82b29",
+  "raga": "Jogia",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 416888,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Jogiya"
+}

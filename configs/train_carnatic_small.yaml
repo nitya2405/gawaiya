@@ -1,0 +1,30 @@
+data:
+  tokens_manifest: data/tokens/encodec_24khz_bw6/manifest.jsonl
+  # Saved alongside checkpoints for reproducibility.
+  vocabs_dir: runs/carnatic_small/vocabs
+
+model:
+  d_model: 512
+  n_layers: 12
+  n_heads: 8
+  dropout: 0.1
+  ff_mult: 4
+  cross_attention: true
+  max_seq_len: 16384
+
+training:
+  output_dir: runs/carnatic_small
+  seed: 42
+  device: cuda
+  batch_size: 2
+  num_workers: 0
+  grad_accum_steps: 8
+  lr: 3.0e-4
+  weight_decay: 0.01
+  warmup_steps: 2000
+  grad_clip: 1.0
+  max_steps: 200000
+  log_every: 50
+  ckpt_every: 2000
+  amp: true
+  tensorboard: true

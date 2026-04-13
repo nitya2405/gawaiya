@@ -1,0 +1,30 @@
+data:
+  tokens_manifest: data/smoke/tokens/encodec_24khz_bw6/manifest.jsonl
+  vocabs_dir: runs/smoke_carnatic/vocabs
+
+model:
+  d_model: 128
+  n_layers: 2
+  n_heads: 4
+  dropout: 0.0
+  ff_mult: 2
+  cross_attention: true
+  max_seq_len: 512
+
+training:
+  output_dir: runs/smoke_carnatic
+  seed: 123
+  device: cpu
+  batch_size: 1
+  num_workers: 0
+  grad_accum_steps: 1
+  lr: 1.0e-3
+  weight_decay: 0.0
+  warmup_steps: 0
+  grad_clip: 1.0
+  max_steps: 20
+  log_every: 1
+  ckpt_every: 10
+  amp: false
+  tensorboard: false
+

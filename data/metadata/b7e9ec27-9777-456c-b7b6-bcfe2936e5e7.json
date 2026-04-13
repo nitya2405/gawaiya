@@ -1,0 +1,15 @@
+{
+  "mbid": "b7e9ec27-9777-456c-b7b6-bcfe2936e5e7",
+  "raga": "Khat",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 1274801,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Khat Todi"
+}

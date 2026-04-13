@@ -1,0 +1,15 @@
+{
+  "mbid": "da0c6431-10b5-44b9-8ba4-57023fd45914",
+  "raga": "Khokar",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 824868,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Khokar"
+}

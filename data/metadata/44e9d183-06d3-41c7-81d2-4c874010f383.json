@@ -1,0 +1,15 @@
+{
+  "mbid": "44e9d183-06d3-41c7-81d2-4c874010f383",
+  "raga": "Hindol Pancham",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 727562,
+  "album": "Anaahata by Milind Malshe",
+  "raag_folder": "Raag Hindol Pancham"
+}

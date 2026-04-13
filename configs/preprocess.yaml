@@ -1,0 +1,27 @@
+dataset:
+  #root: dataset/carnatic
+  root: saraga1.5_hindustani
+  # audio_filename: song.mp3
+  # metadata_filename: song.json
+
+preprocess:
+  out_dir: data/processed/hindustani_wav16k
+  sample_rate: 16000
+  channels: 1
+
+  # Normalize each segment after resampling.
+  # method: none|peak|rms|lufs (lufs requires pyloudnorm)
+  normalize:
+    method: rms
+    target_rms_db: -20.0
+    peak_db: -1.0
+    target_lufs: -18.0
+
+  segment:
+    enabled: true
+    segment_seconds: 10.0
+    hop_seconds: 10.0
+
+manifest:
+  out_path: data/processed/segments_manifest.jsonl
+

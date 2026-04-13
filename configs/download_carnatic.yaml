@@ -1,0 +1,20 @@
+dunya:
+  # Keep tokens out of configs. Set env var DUNYA_TOKEN instead.
+  token_env: DUNYA_TOKEN
+  # Carnatic CC collection UUID used by the Dunya API header.
+  tradition_id: a163c8f2-b75f-4655-86be-1504ea2944c2
+
+dataset:
+  # Root folder containing Saraga-style structure:
+  # dataset/carnatic/<Album>/<Song>/(song.json, song.mp3)
+  root: dataset/carnatic
+  metadata_filename: song.json
+  audio_filename: song.mp3
+
+download:
+  # "local": download MP3s for existing song folders (match MBIDs from metadata).
+  # "crawl": crawl all Carnatic recordings from Dunya and create the dataset structure.
+  mode: local
+  overwrite: false
+  num_workers: 4
+

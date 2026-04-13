@@ -1,0 +1,15 @@
+{
+  "mbid": "9dcfa70f-9205-4848-8325-649cc900b12c",
+  "raga": "unknown",
+  "taal": "unknown",
+  "laya": "unknown",
+  "instruments": [
+    "harmonium",
+    "tabla",
+    "voice"
+  ],
+  "lead_instrument": "voice",
+  "duration_ms": 683351,
+  "album": "Raag Sawani & Bahar by Ulhas Kashalkar",
+  "raag_folder": "Raag Bahar"
+}

@@ -1,0 +1,19 @@
+checkpoint: runs/smoke_carnatic/checkpoints/latest.pt
+
+conditioning:
+  raga: Kalyani
+  tala: Adi
+  artist: Smoke Artist
+  text: "carnatic alapana"
+
+generation:
+  device: cpu
+  duration_sec: 2.0
+  temperature: 1.0
+  top_k: 250
+  top_p: 0.0
+
+output:
+  wav_path: outputs/smoke_sample.wav
+  sample_rate: 24000
+
