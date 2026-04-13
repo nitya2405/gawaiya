@@ -1,0 +1,55 @@
+# train_hindustani_delay.yaml
+#
+# Phase 1.5: retrain from scratch on delay-pattern tokenized data.
+#
+# Before running this, generate the delay-pattern token files:
+#   python preprocessing/apply_delay_pattern.py
+#
+# Then train:
+#   python training/train_carnatic_lm.py --config configs/train_hindustani_delay.yaml
+#
+# Estimated time: ~7 days on RTX 3050 4GB
+# Expected improvements vs flat model:
+#   - Tabla stays coherent for full clip duration (no dropout at ~12s)
+#   - High-codebook (cb4-cb7) static noise eliminated
+#   - Longer effective melodic coherence per clip
+#
+# Drop-in swap: set MODEL_CHECKPOINT in backend/config.py to the new checkpoint.
+# The API layer never changes — same generate() signature.
+
+data:
+  tokens_manifest: data/tokens/hindustani_encodec_24khz_bw6_delay/manifest.jsonl
+  vocabs_dir: runs/hindustani_small/vocabs
+
+model:
+  d_model: 512
+  n_layers: 12
+  n_heads: 8
+  dropout: 0.1
+  ff_mult: 4
+  cross_attention: true
+  max_seq_len: 4096
+  cfg_dropout: 0.1          # CFG baked in from the start (no separate fine-tune needed)
+
+training:
+  output_dir: runs/hindustani_delay
+  seed: 42
+  device: cuda
+  batch_size: 2
+  num_workers: 0
+  grad_accum_steps: 8       # effective batch = 16
+  lr: 3.0e-4                # full LR — training from scratch
+  weight_decay: 0.01
+  warmup_steps: 2000
+  grad_clip: 1.0
+  max_steps: 120000
+  log_every: 50
+  ckpt_every: 500
+  amp: true
+  tensorboard: true
+
+  # Equal loss weights — learned from the flat-model mistake
+  cb_loss_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+  # Flag stored in checkpoint so generate_music.py knows to use delay decoding
+  delay_pattern: true

@@ -27,6 +27,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from sangeet.audio.postprocess import postprocess_wav
 from sangeet.data.dataset import TokenSpec, token_ids_to_codes
+from sangeet.data.delay_pattern import delay_tokens_to_codes_v2
 from sangeet.data.vocab import load_vocab
 from sangeet.model.transformer_lm import CarnaticLMConfig, CarnaticTransformerLM
 from sangeet.tokenizer.encodec_codec import (
@@ -114,6 +115,11 @@ def crossfade(a: np.ndarray, b: np.ndarray, sr: int, fade_sec: float) -> np.ndar
 # Model loading (once, reused across clips)
 # ---------------------------------------------------------------------------
 
+def is_delay_pattern_checkpoint(ckpt: dict) -> bool:
+    """Returns True if the checkpoint was trained with delay pattern."""
+    return bool(ckpt.get("cfg", {}).get("training", {}).get("delay_pattern", False))
+
+
 def load_model(repo_root: Path, ckpt_path: Path, device: torch.device):
     ckpt       = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     run_cfg    = ckpt["cfg"]
@@ -155,7 +161,7 @@ def load_model(repo_root: Path, ckpt_path: Path, device: torch.device):
     model.to(device)
     model.eval()
 
-    return model, token_meta, raga_vocab, tala_vocab, artist_vocab
+    return model, token_meta, raga_vocab, tala_vocab, artist_vocab, ckpt
 
 
 # ---------------------------------------------------------------------------
@@ -195,10 +201,20 @@ def generate_clip(
         device=device,
     )
 
-    codes = token_ids_to_codes(
-        token_ids.detach().cpu().numpy().astype(np.int64),
-        token_spec,
-    )
+    raw_tokens = token_ids.detach().cpu().numpy().astype(np.int64)
+
+    # Decode: delay-pattern checkpoint uses different inverse transform
+    if getattr(generate_clip, "_delay_pattern", False):
+        codes = delay_tokens_to_codes_v2(
+            raw_tokens,
+            n_codebooks=n_cb_full,
+            codebook_size=int(token_spec.codebook_size),
+            token_offset=int(token_spec.token_offset),
+        )
+        # Skip first K-1 warmup frames (they were PAD-filled)
+        codes = codes[:, n_cb_full - 1:]
+    else:
+        codes = token_ids_to_codes(raw_tokens, token_spec)
 
     # Zero-fill codebooks beyond n_cb_use
     if n_cb_use < n_cb_full:
@@ -256,9 +272,13 @@ def main() -> None:
     print(f"[INFO] Device: {device}")
     print(f"[INFO] Loading checkpoint: {ckpt_path}")
 
-    model, token_meta, raga_vocab, tala_vocab, artist_vocab = load_model(
+    model, token_meta, raga_vocab, tala_vocab, artist_vocab, ckpt = load_model(
         repo_root, ckpt_path, device
     )
+    use_delay = is_delay_pattern_checkpoint(ckpt)
+    generate_clip._delay_pattern = use_delay
+    if use_delay:
+        print("[INFO] Delay-pattern checkpoint detected — using delay decoding.")
 
     raga_id   = _safe_encode(raga_vocab,   args.raga)
     tala_id   = _safe_encode(tala_vocab,   args.tala)

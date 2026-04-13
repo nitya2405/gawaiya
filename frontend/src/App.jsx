@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { useVocab } from './hooks/useVocab'
 import { useGeneration } from './hooks/useGeneration'
 import { RagaSelector } from './components/RagaSelector'
@@ -9,6 +10,19 @@ import { AudioPlayer } from './components/AudioPlayer'
 import { FeedbackButtons } from './components/FeedbackButtons'
 import { GenerationHistory, saveToHistory, loadHistory } from './components/GenerationHistory'
 
+// ---------------------------------------------------------------------------
+// Raga of the day — deterministic from calendar date
+// ---------------------------------------------------------------------------
+function getRagaOfDay(ragas) {
+  if (!ragas.length) return null
+  const today = new Date()
+  const seed  = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
+  return ragas[seed % ragas.length]
+}
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
 export default function App() {
   const { ragas, talas, loading } = useVocab()
 
@@ -28,18 +42,28 @@ export default function App() {
     if (talas.length && !talas.find(t => t.name === tala)) setTala(talas[0].name)
   }, [ragas, talas])
 
+  // Handle ?share=job_id in URL — load shared generation
+  useEffect(() => {
+    const params  = new URLSearchParams(window.location.search)
+    const shareId = params.get('share')
+    if (!shareId) return
+    axios.get(`/api/share/${shareId}`).then(({ data }) => {
+      if (data.raga)         setRaga(data.raga)
+      if (data.tala)         setTala(data.tala)
+      if (data.duration_sec) setDuration(data.duration_sec)
+    }).catch(() => {})
+  }, [])
+
   // Save to history when done
   useEffect(() => {
     if (status === 'done') {
-      const entry = { raga, tala, duration_sec: duration }
-      saveToHistory(entry)
+      saveToHistory({ raga, tala, duration_sec: duration })
       setHistory(loadHistory())
     }
   }, [status])
 
-  const handleGenerate = () => {
+  const handleGenerate = () =>
     generate({ raga, tala, duration_sec: duration, cfg_scale: cfgScale, n_codebooks: nCb })
-  }
 
   const handleReload = (entry) => {
     reset()
@@ -47,6 +71,8 @@ export default function App() {
     setTala(entry.tala)
     setDuration(entry.duration_sec)
   }
+
+  const ragaOfDay = getRagaOfDay(ragas)
 
   if (loading) {
     return (
@@ -65,6 +91,21 @@ export default function App() {
           <h1 className="text-2xl font-semibold text-zinc-100 tracking-tight">Sangeet AI</h1>
           <p className="text-sm text-zinc-500 mt-1">Hindustani Classical Generator</p>
         </div>
+
+        {/* Raga of the day */}
+        {ragaOfDay && (
+          <button
+            onClick={() => setRaga(ragaOfDay.name)}
+            className="flex items-center justify-between bg-violet-950/40 border border-violet-800/50 rounded-xl px-4 py-3 text-left hover:bg-violet-900/40 transition-colors group"
+          >
+            <div>
+              <p className="text-xs uppercase tracking-widest text-violet-400 font-medium mb-0.5">Raga of the day</p>
+              <p className="text-sm font-medium text-zinc-100">{ragaOfDay.name}</p>
+              <p className="text-xs text-zinc-500">{ragaOfDay.thaat} thaat · {ragaOfDay.time} · {ragaOfDay.mood}</p>
+            </div>
+            <span className="text-xs text-violet-400 group-hover:text-violet-300 transition-colors">Select →</span>
+          </button>
+        )}
 
         {/* Controls card */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-5">
@@ -128,11 +169,11 @@ export default function App() {
         {audioUrl && (
           <div className="flex flex-col gap-3">
             <AudioPlayer audioUrl={audioUrl} jobId={jobId} />
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
               <FeedbackButtons jobId={jobId} />
               <button
                 onClick={handleGenerate}
-                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors text-right"
               >
                 Regenerate
               </button>

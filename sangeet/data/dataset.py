@@ -125,9 +125,13 @@ class CarnaticTokenDataset(Dataset):
         tok_path = self._resolve_tokens_path(str(row["tokens_path"]))
 
         with np.load(tok_path, allow_pickle=False) as z:
-            codes = z["codes"]  # [K, T]
-
-        token_ids = codes_to_token_ids(codes, self.token_spec).astype(np.int64)
+            if "tokens" in z:
+                # Delay-pattern pre-encoded file: tokens already flat [T*K]
+                token_ids = z["tokens"].astype(np.int64)
+            else:
+                # Legacy flat file: codes [K, T]
+                codes = z["codes"]  # [K, T]
+                token_ids = codes_to_token_ids(codes, self.token_spec).astype(np.int64)
 
         k = self.token_spec.n_codebooks
         if token_ids.size % k != 0:
