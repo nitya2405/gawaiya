@@ -2,8 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 
 export function FeedbackButtons({ jobId }) {
-  const [voted, setVoted]   = useState(null)  // 1 | -1 | null
-  const [copied, setCopied] = useState(false)
+  const [voted, setVoted] = useState(null)
 
   const submit = async (value) => {
     if (voted !== null || !jobId) return
@@ -13,20 +12,10 @@ export function FeedbackButtons({ jobId }) {
     } catch {}
   }
 
-  const copyLink = async () => {
-    const url = `${window.location.origin}/?share=${jobId}`
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {}
-  }
-
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-3">
       <span className="text-xs text-zinc-500">Rate:</span>
 
-      {/* Thumbs up */}
       <button
         onClick={() => submit(1)}
         disabled={voted !== null}
@@ -43,7 +32,6 @@ export function FeedbackButtons({ jobId }) {
         👍 {voted === 1 && <span>Nice!</span>}
       </button>
 
-      {/* Thumbs down */}
       <button
         onClick={() => submit(-1)}
         disabled={voted !== null}
@@ -58,14 +46,6 @@ export function FeedbackButtons({ jobId }) {
         `}
       >
         👎 {voted === -1 && <span>Noted</span>}
-      </button>
-
-      {/* Share */}
-      <button
-        onClick={copyLink}
-        className="ml-auto text-xs text-zinc-400 hover:text-violet-400 border border-zinc-700 hover:border-violet-500 rounded-lg px-3 py-1.5 transition-colors"
-      >
-        {copied ? '✓ Copied' : 'Copy link'}
       </button>
     </div>
   )

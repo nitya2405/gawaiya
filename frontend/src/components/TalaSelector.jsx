@@ -1,5 +1,3 @@
-import { TalaDots } from './TalaDots'
-
 export function TalaSelector({ talas, value, onChange }) {
   const meta = talas.find(t => t.name === value)
 
@@ -16,12 +14,9 @@ export function TalaSelector({ talas, value, onChange }) {
         ))}
       </select>
       {meta && (
-        <>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            {meta.beats} beats · {meta.character}
-          </p>
-          <TalaDots tala={meta} />
-        </>
+        <p className="text-xs text-zinc-500 mt-0.5">
+          {meta.beats} beats · {meta.character}
+        </p>
       )}
     </div>
   )

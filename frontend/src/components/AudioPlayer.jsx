@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import SpectrogramPlugin from 'wavesurfer.js/dist/plugins/spectrogram.esm.js'
 
@@ -7,10 +7,27 @@ export function AudioPlayer({ audioUrl, jobId }) {
   const spectroRef = useRef(null)
   const wsRef      = useRef(null)
 
-  const [playing, setPlaying]   = useState(false)
-  const [duration, setDuration] = useState(0)
-  const [current, setCurrent]   = useState(0)
-  const [showSpec, setShowSpec] = useState(false)
+  const [playing, setPlaying]     = useState(false)
+  const [duration, setDuration]   = useState(0)
+  const [current, setCurrent]     = useState(0)
+  const [showSpec, setShowSpec]   = useState(false)
+  const [showFmts, setShowFmts]   = useState(false)
+  const fmtRef                    = useRef(null)
+
+  const FORMATS = [
+    { id: 'mp3',  label: 'MP3',  desc: '192kbps' },
+    { id: 'wav',  label: 'WAV',  desc: 'Lossless PCM' },
+    { id: 'flac', label: 'FLAC', desc: 'Lossless compressed' },
+    { id: 'ogg',  label: 'OGG',  desc: 'Vorbis q6' },
+  ]
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showFmts) return
+    const handler = (e) => { if (fmtRef.current && !fmtRef.current.contains(e.target)) setShowFmts(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showFmts])
 
   useEffect(() => {
     if (!audioUrl || !waveRef.current) return
@@ -91,13 +108,31 @@ export function AudioPlayer({ audioUrl, jobId }) {
           Spectrogram
         </button>
 
-        <a
-          href={audioUrl}
-          download={`sangeet-${jobId}.mp3`}
-          className="ml-auto text-xs text-zinc-400 hover:text-amber-400 border border-zinc-700 hover:border-amber-500 rounded-lg px-3 py-1.5 transition-colors"
-        >
-          Download
-        </a>
+        {/* Download dropdown */}
+        <div ref={fmtRef} className="ml-auto relative">
+          <button
+            onClick={() => setShowFmts(v => !v)}
+            className="text-xs text-zinc-400 hover:text-amber-400 border border-zinc-700 hover:border-amber-500 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+          >
+            Download <span className="text-zinc-600">{showFmts ? '▴' : '▾'}</span>
+          </button>
+          {showFmts && (
+            <div className="absolute right-0 bottom-full mb-1 bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden shadow-xl z-10 min-w-[160px]">
+              {FORMATS.map(fmt => (
+                <a
+                  key={fmt.id}
+                  href={`/api/audio/${jobId}?format=${fmt.id}`}
+                  download={`sangeet-${jobId}.${fmt.id}`}
+                  onClick={() => setShowFmts(false)}
+                  className="flex items-center justify-between px-3 py-2.5 hover:bg-zinc-800 transition-colors"
+                >
+                  <span className="text-xs font-medium text-zinc-200">{fmt.label}</span>
+                  <span className="text-xs text-zinc-500">{fmt.desc}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

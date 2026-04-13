@@ -372,8 +372,20 @@ def job_status(job_id: str) -> JobStatus:
 # Audio
 # ---------------------------------------------------------------------------
 
+_AUDIO_FORMATS = {
+    "mp3":  ("audio/mpeg",  ["-codec:a", "libmp3lame", "-b:a", "192k"]),
+    "wav":  ("audio/wav",   ["-codec:a", "pcm_s16le"]),
+    "flac": ("audio/flac",  ["-codec:a", "flac"]),
+    "ogg":  ("audio/ogg",   ["-codec:a", "libvorbis", "-q:a", "6"]),
+}
+
+
 @app.get("/api/audio/{job_id}")
-def get_audio(job_id: str) -> StreamingResponse:
+def get_audio(job_id: str, format: str = "mp3") -> StreamingResponse:
+    fmt = format.lower()
+    if fmt not in _AUDIO_FORMATS:
+        raise HTTPException(status_code=422, detail=f"Unsupported format '{fmt}'. Choose from: {', '.join(_AUDIO_FORMATS)}")
+
     job = _get_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found.")
@@ -384,15 +396,42 @@ def get_audio(job_id: str) -> StreamingResponse:
     if not mp3_path.exists():
         raise HTTPException(status_code=404, detail="Audio file missing.")
 
-    def _iter():
-        with open(mp3_path, "rb") as f:
-            while chunk := f.read(65536):
+    media_type, codec_args = _AUDIO_FORMATS[fmt]
+
+    if fmt == "mp3":
+        # Serve the stored file directly — no re-encode needed
+        def _iter():
+            with open(mp3_path, "rb") as f:
+                while chunk := f.read(65536):
+                    yield chunk
+        return StreamingResponse(
+            _iter(),
+            media_type=media_type,
+            headers={"Content-Disposition": f'attachment; filename="sangeet-{job_id}.mp3"'},
+        )
+
+    # Transcode from stored MP3 to requested format via ffmpeg pipe
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", str(mp3_path),
+        *codec_args,
+        "-f", fmt if fmt != "ogg" else "ogg",
+        "pipe:1",
+    ]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+    def _iter_proc():
+        try:
+            while chunk := proc.stdout.read(65536):
                 yield chunk
+        finally:
+            proc.stdout.close()
+            proc.wait()
 
     return StreamingResponse(
-        _iter(),
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": f'attachment; filename="{job_id}.mp3"'},
+        _iter_proc(),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="sangeet-{job_id}.{fmt}"'},
     )
 
 
